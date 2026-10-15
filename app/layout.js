@@ -60,7 +60,7 @@
 //         router.push('/dashboard');
 //       }
 //     }
-//   }, [user, loading, pathname, router]);
+//   }, [user, loading, demoMode, pathname, router]);
 
 //   if (loading) {
 //     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -103,12 +103,12 @@ const geistMono = Geist_Mono({
 
 // AuthGuard logic
 function AuthGuard({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, demoMode } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !demoMode) {
       if (!user && pathname.startsWith('/dashboard')) {
         router.push('/auth/login');
       }
@@ -116,7 +116,7 @@ function AuthGuard({ children }) {
         router.push('/dashboard');
       }
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, demoMode, pathname, router]);
 
   if (loading) {
     return (

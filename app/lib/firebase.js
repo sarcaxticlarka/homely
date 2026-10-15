@@ -64,9 +64,14 @@ const firebaseConfig = {
 };
 
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// UI-only mode: if Firebase keys are missing, skip init so the build/UI still works.
+export const firebaseEnabled = Boolean(firebaseConfig.apiKey);
 
+const app = firebaseEnabled
+  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0])
+  : null;
 
-export const auth = getAuth(app);
+export const auth = app ? getAuth(app) : null;
 export const googleProvider = new GoogleAuthProvider();
-export const db = getFirestore(app);  
+export const db = app ? getFirestore(app) : null;
+

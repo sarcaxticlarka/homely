@@ -113,7 +113,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, firebaseEnabled } from '../lib/firebase';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword,
@@ -133,10 +133,32 @@ const AuthContext = createContext({
   logout: () => Promise.resolve()
 });
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+// Fake user used when Firebase isn't configured (UI-only demo mode)
+const DEMO_USER = {
+  uid: 'demo',
+  email: 'demo@homely.app',
+  displayName: 'Demo User',
+  photoURL: null,
+  emailVerified: true,
+};
 
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(firebaseEnabled ? null : DEMO_USER);
+  const [loading, setLoading] = useState(firebaseEnabled);
+
+  if (!firebaseEnabled) {
+    const noop = () => Promise.resolve();
+    return (
+      <AuthContext.Provider value={{ user, loading: false, demoMode: true, login: noop, signup: noop, googleLogin: noop, logout: noop }}>
+        {children}
+      </AuthContext.Provider>
+    );
+  }
+
+  return <FirebaseAuthProvider user={user} setUser={setUser} loading={loading} setLoading={setLoading}>{children}</FirebaseAuthProvider>;
+}
+
+function FirebaseAuthProvider({ children, user, setUser, loading, setLoading }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
